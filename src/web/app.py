@@ -38,7 +38,9 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 CORS(app)
 
 # Global variables
-data_loader = ExoplanetDataLoader(data_dir='data')
+# Use absolute path for production deployment
+data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data')
+data_loader = ExoplanetDataLoader(data_dir=data_dir)
 classifier = None
 model_info = {}
 
@@ -498,4 +500,5 @@ def load_model():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)

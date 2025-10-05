@@ -14,14 +14,20 @@ logger = logging.getLogger(__name__)
 class ExoplanetModel:
     """Wrapper class for the trained exoplanet detection model"""
     
-    def __init__(self, model_path='trained_exoplanet_model.pkl'):
+    def __init__(self, model_path=None):
         """
         Initialize the model
         
         Args:
             model_path: Path to the trained model file
         """
-        self.model_path = model_path
+        if model_path is None:
+            # Use absolute path for production
+            import os
+            current_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            self.model_path = os.path.join(current_dir, 'trained_exoplanet_model.pkl')
+        else:
+            self.model_path = model_path
         self.model_data = None
         self.is_loaded = False
         self.load_model()
