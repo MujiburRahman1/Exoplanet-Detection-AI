@@ -101,6 +101,31 @@ body {
     font-weight: 600;
 }
 
+/* Force high-contrast colors inside Training Results card */
+#trainingResults,
+#trainingResults .card-header,
+#trainingResults .card-body {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+}
+
+#trainingResults * {
+    color: #212529 !important;
+}
+
+#trainingResults table,
+#trainingResults thead,
+#trainingResults tbody,
+#trainingResults th,
+#trainingResults td {
+    background-color: #ffffff !important;
+    border-color: #dee2e6 !important;
+}
+
+#trainingResults .badge.bg-info {
+    color: #ffffff !important;
+}
+
 /* Alerts */
 .alert {
     border: none;
