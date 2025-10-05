@@ -35,7 +35,7 @@ class ExoplanetModel:
     def load_model(self):
         """Load the trained model from disk"""
         try:
-            if os.path.exists(self.model_path):
+            if self.model_path and os.path.exists(self.model_path):
                 self.model_data = joblib.load(self.model_path)
                 self.is_loaded = True
                 logger.info(f"Model loaded successfully: {self.model_data['model_name']}")

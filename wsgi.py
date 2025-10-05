@@ -10,7 +10,11 @@ import os
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
+# Import the Flask app
 from src.web.app import app
 
+# For production deployment
+application = app
+
 if __name__ == "__main__":
-    app.run()
+    application.run()

@@ -29,7 +29,8 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__, 
            template_folder='../../templates',
-           static_folder='../../static')
+           static_folder='../../static',
+           static_url_path='/static')
 app.config['SECRET_KEY'] = 'exoplanet-detection-secret-key'
 app.config['UPLOAD_FOLDER'] = '../../uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -498,6 +499,13 @@ def load_model():
     except Exception as e:
         logger.error(f"Error loading model: {e}")
         return jsonify({'error': str(e)}), 500
+
+# Initialize model integration
+try:
+    exoplanet_model = ExoplanetModel()
+except Exception as e:
+    logger.warning(f"Could not initialize model: {e}")
+    exoplanet_model = None
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
