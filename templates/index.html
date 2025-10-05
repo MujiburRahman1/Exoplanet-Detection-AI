@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Exoplanet Detection AI{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Hero Section -->
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <h1 class="display-4">
+                <i class="fas fa-rocket"></i> Exoplanet Detection AI
+            </h1>
+            <p class="lead">
+                Automatically identify exoplanets using machine learning and NASA's open-source datasets from Kepler, K2, and TESS missions.
+            </p>
+            <hr class="my-4">
+            <p>
+                Upload your transit data or use our pre-trained models to classify astronomical objects as confirmed exoplanets, planetary candidates, or false positives.
+            </p>
+            <div class="d-flex gap-3">
+                <a class="btn btn-light btn-lg" href="{{ url_for('upload_file') }}" role="button">
+                    <i class="fas fa-upload"></i> Upload Data
+                </a>
+                <a class="btn btn-outline-light btn-lg" href="{{ url_for('train_model') }}" role="button">
+                    <i class="fas fa-brain"></i> Train Model
+                </a>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Multiple Datasets</h5>
+                        <p class="card-text">
+                            Works with Kepler, K2, and TESS datasets from NASA's exoplanet missions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-brain fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Advanced ML</h5>
+                        <p class="card-text">
+                            Multiple machine learning algorithms including Random Forest, SVM, and Neural Networks.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title">Real-time Analysis</h5>
+                        <p class="card-text">
+                            Upload new data and get instant predictions with confidence scores.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Model Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="model-status-content">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading model information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('upload_file') }}" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload New Data
+                    </a>
+                    <a href="{{ url_for('train_model') }}" class="btn btn-success">
+                        <i class="fas fa-brain"></i> Train New Model
+                    </a>
+                    <button class="btn btn-info" onclick="loadModelInfo()">
+                        <i class="fas fa-refresh"></i> Refresh Model Info
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dataset Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database"></i> Available Datasets
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="dataset-info">
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 small">Loading dataset information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadModelInfo();
+    loadDatasetInfo();
+    loadStatistics();
+});
+
+function loadModelInfo() {
+    fetch('/model_info')
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('model-status-content');
+            if (data.is_trained) {
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Model Type:</strong><br>
+                            <span class="badge bg-primary">${data.model_type}</span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Features:</strong><br>
+                            <span class="badge bg-info">${data.n_features}</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <strong>Classes:</strong><br>
+                            ${data.classes.map(cls => `<span class="badge bg-secondary me-1">${cls}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                // Update navbar status
+                const status = document.getElementById('model-status');
+                status.innerHTML = '<i class="fas fa-circle text-success"></i> Model Ready';
+            } else {
+                content.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        No model is currently trained. Please train a model first.
+                    </div>
+                `;
+                
+                // Update navbar status
+                const status = document.getElementById('model-status');
+                status.innerHTML = '<i class="fas fa-circle text-danger"></i> No Model';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading model info:', error);
+            document.getElementById('model-status-content').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Error loading model information.
+                </div>
+            `;
+        });
+}
+
+function loadDatasetInfo() {
+    fetch('/datasets')
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('dataset-info');
+            let html = '';
+            
+            for (const [name, info] of Object.entries(data)) {
+                html += `
+                    <div class="mb-3">
+                        <h6 class="text-capitalize">${name} Dataset</h6>
+                        <p class="small mb-1">
+                            <strong>Records:</strong> ${info.shape[0].toLocaleString()}<br>
+                            <strong>Features:</strong> ${info.shape[1]}
+                        </p>
+                    </div>
+                `;
+            }
+            
+            if (html === '') {
+                html = '<p class="text-muted small">No datasets loaded. Please place CSV files in the data/ directory.</p>';
+            }
+            
+            content.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error loading dataset info:', error);
+            document.getElementById('dataset-info').innerHTML = `
+                <p class="text-danger small">Error loading dataset information.</p>
+            `;
+        });
+}
+
+function loadStatistics() {
+    // This would typically load real statistics from the backend
+    const ctx = document.getElementById('statsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Confirmed Exoplanets', 'Planetary Candidates', 'False Positives'],
+            datasets: [{
+                data: [45, 30, 25],
+                backgroundColor: [
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

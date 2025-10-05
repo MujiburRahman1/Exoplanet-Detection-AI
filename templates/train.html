@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}Train Model - Exoplanet Detection AI{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-brain"></i> Train Machine Learning Model
+                </h4>
+            </div>
+            <div class="card-body">
+                <form id="trainForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="modelType" class="form-label">
+                                    <strong>Model Type</strong>
+                                </label>
+                                <select class="form-select" id="modelType" name="model_type" required>
+                                    <option value="random_forest">Random Forest</option>
+                                    <option value="gradient_boosting">Gradient Boosting</option>
+                                    <option value="svm">Support Vector Machine</option>
+                                    <option value="logistic_regression">Logistic Regression</option>
+                                    <option value="neural_network">Neural Network</option>
+                                </select>
+                                <div class="form-text">
+                                    Choose the machine learning algorithm to use for classification.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dataset" class="form-label">
+                                    <strong>Training Dataset</strong>
+                                </label>
+                                <select class="form-select" id="dataset" name="dataset" required>
+                                    <option value="kepler">Kepler Objects of Interest (KOI)</option>
+                                    <option value="tess">TESS Objects of Interest (TOI)</option>
+                                    <option value="k2">K2 Planets and Candidates</option>
+                                </select>
+                                <div class="form-text">
+                                    Select the NASA dataset to use for training.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Model Parameters</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="testSize" class="form-label">Test Size</label>
+                                    <input type="range" class="form-range" id="testSize" name="test_size" 
+                                           min="0.1" max="0.5" step="0.05" value="0.2">
+                                    <div class="form-text">
+                                        <span id="testSizeValue">20%</span> of data will be used for testing
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="hyperparameterTuning" name="hyperparameter_tuning">
+                                        <label class="form-check-label" for="hyperparameterTuning">
+                                            Enable Hyperparameter Tuning
+                                        </label>
+                                    </div>
+                                    <div class="form-text">
+                                        Automatically optimize model parameters (takes longer)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left"></i> Back to Home
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="trainBtn">
+                            <i class="fas fa-play"></i> Start Training
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Training Results -->
+        <div class="card mt-4" id="trainingResults" style="display: none; background-color: #ffffff; border: 1px solid #dee2e6;">
+            <div class="card-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+                <h5 class="mb-0" style="color: #212529; font-weight: 600;">
+                    <i class="fas fa-chart-line"></i> Training Results
+                </h5>
+            </div>
+            <div class="card-body" style="background-color: #ffffff; color: #212529;">
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Model Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Model Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="modelInfo">
+                    <p class="text-muted">Select a model type to see information.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dataset Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database"></i> Dataset Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="datasetInfo">
+                    <p class="text-muted">Select a dataset to see information.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Progress -->
+        <div class="card" id="trainingProgress" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cog fa-spin"></i> Training Progress
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%" id="progressBar"></div>
+                </div>
+                <p class="small text-muted" id="progressText">Initializing...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const modelInfo = {
+    'random_forest': {
+        name: 'Random Forest',
+        description: 'An ensemble method that builds multiple decision trees and combines their predictions.',
+        pros: ['Handles missing values well', 'Reduces overfitting', 'Feature importance available'],
+        cons: ['Can be slow on large datasets', 'Less interpretable than single trees']
+    },
+    'gradient_boosting': {
+        name: 'Gradient Boosting',
+        description: 'Builds models sequentially, each correcting the errors of the previous ones.',
+        pros: ['Often achieves high accuracy', 'Handles different data types well'],
+        cons: ['Can overfit with small datasets', 'Sensitive to outliers']
+    },
+    'svm': {
+        name: 'Support Vector Machine',
+        description: 'Finds the optimal boundary between classes using support vectors.',
+        pros: ['Works well with high-dimensional data', 'Memory efficient'],
+        cons: ['Slow on large datasets', 'Sensitive to feature scaling']
+    },
+    'logistic_regression': {
+        name: 'Logistic Regression',
+        description: 'A linear model that predicts probabilities using the logistic function.',
+        pros: ['Fast and simple', 'Provides probability estimates', 'Interpretable'],
+        cons: ['Assumes linear relationship', 'Sensitive to outliers']
+    },
+    'neural_network': {
+        name: 'Neural Network',
+        description: 'A multi-layer perceptron that can learn complex non-linear patterns.',
+        pros: ['Can model complex relationships', 'Flexible architecture'],
+        cons: ['Requires more data', 'Black box model', 'Sensitive to hyperparameters']
+    }
+};
+
+const datasetInfo = {
+    'kepler': {
+        name: 'Kepler Objects of Interest (KOI)',
+        description: 'Comprehensive list of all confirmed exoplanets, planetary candidates, and false positives from the Kepler mission.',
+        features: ['Orbital period', 'Transit duration', 'Planetary radius', 'Stellar properties'],
+        target: 'Disposition Using Kepler Data'
+    },
+    'tess': {
+        name: 'TESS Objects of Interest (TOI)',
+        description: 'Data from the Transiting Exoplanet Survey Satellite mission.',
+        features: ['Transit parameters', 'Stellar characteristics', 'Orbital elements'],
+        target: 'TFOWPG Disposition'
+    },
+    'k2': {
+        name: 'K2 Planets and Candidates',
+        description: 'Data from the K2 mission, the successor to Kepler.',
+        features: ['Transit properties', 'Stellar parameters', 'Orbital characteristics'],
+        target: 'Archive Disposition'
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Update test size display
+    const testSizeSlider = document.getElementById('testSize');
+    const testSizeValue = document.getElementById('testSizeValue');
+    
+    testSizeSlider.addEventListener('input', function() {
+        testSizeValue.textContent = Math.round(this.value * 100) + '%';
+    });
+
+    // Update model information
+    const modelTypeSelect = document.getElementById('modelType');
+    const datasetSelect = document.getElementById('dataset');
+    
+    modelTypeSelect.addEventListener('change', updateModelInfo);
+    datasetSelect.addEventListener('change', updateDatasetInfo);
+    
+    // Initial updates
+    updateModelInfo();
+    updateDatasetInfo();
+
+    // Form submission
+    document.getElementById('trainForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        startTraining();
+    });
+});
+
+function updateModelInfo() {
+    const modelType = document.getElementById('modelType').value;
+    const info = modelInfo[modelType];
+    const container = document.getElementById('modelInfo');
+    
+    container.innerHTML = `
+        <h6>${info.name}</h6>
+        <p class="small">${info.description}</p>
+        <h6 class="mt-3">Advantages:</h6>
+        <ul class="small">
+            ${info.pros.map(pro => `<li>${pro}</li>`).join('')}
+        </ul>
+        <h6>Disadvantages:</h6>
+        <ul class="small">
+            ${info.cons.map(con => `<li>${con}</li>`).join('')}
+        </ul>
+    `;
+}
+
+function updateDatasetInfo() {
+    const dataset = document.getElementById('dataset').value;
+    const info = datasetInfo[dataset];
+    const container = document.getElementById('datasetInfo');
+    
+    container.innerHTML = `
+        <h6>${info.name}</h6>
+        <p class="small">${info.description}</p>
+        <h6 class="mt-3">Key Features:</h6>
+        <ul class="small">
+            ${info.features.map(feature => `<li>${feature}</li>`).join('')}
+        </ul>
+        <h6>Target Variable:</h6>
+        <p class="small"><code>${info.target}</code></p>
+    `;
+}
+
+function startTraining() {
+    const form = document.getElementById('trainForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Show progress
+    document.getElementById('trainingProgress').style.display = 'block';
+    document.getElementById('trainBtn').disabled = true;
+    document.getElementById('trainBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Training...';
+    
+    // Simulate progress updates
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress > 90) progress = 90;
+        
+        document.getElementById('progressBar').style.width = progress + '%';
+        document.getElementById('progressText').textContent = 
+            progress < 30 ? 'Loading data...' :
+            progress < 60 ? 'Training model...' :
+            progress < 90 ? 'Validating model...' : 'Finalizing...';
+    }, 1000);
+    
+    // Send training request
+    fetch('/train', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        clearInterval(progressInterval);
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('progressText').textContent = 'Training completed!';
+        
+        if (result.success) {
+            displayResults(result);
+        } else {
+            throw new Error(result.error || 'Training failed');
+        }
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        console.error('Training error:', error);
+        alert('Training failed: ' + error.message);
+    })
+    .finally(() => {
+        document.getElementById('trainBtn').disabled = false;
+        document.getElementById('trainBtn').innerHTML = '<i class="fas fa-play"></i> Start Training';
+    });
+}
+
+function displayResults(result) {
+    const resultsDiv = document.getElementById('trainingResults');
+    const contentDiv = document.getElementById('resultsContent');
+    
+    const trainingResults = result.training_results;
+    
+    contentDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 style="color: #212529; font-weight: 600; margin-bottom: 15px;">Model Performance</h6>
+                <div class="mb-3" style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                    <strong style="color: #212529;">Accuracy:</strong> 
+                    <span class="badge bg-success ms-2">${(trainingResults.accuracy * 100).toFixed(2)}%</span>
+                </div>
+                <div class="mb-3" style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                    <strong style="color: #212529;">Cross-Validation Score:</strong> 
+                    <span class="badge bg-info ms-2">${(trainingResults.cv_mean * 100).toFixed(2)}% ± ${(trainingResults.cv_std * 100).toFixed(2)}%</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6 style="color: #212529; font-weight: 600; margin-bottom: 15px;">Classification Report</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered" style="background-color: #ffffff;">
+                        <thead style="background-color: #f8f9fa;">
+                            <tr>
+                                <th style="color: #212529; font-weight: 600;">Class</th>
+                                <th style="color: #212529; font-weight: 600;">Precision</th>
+                                <th style="color: #212529; font-weight: 600;">Recall</th>
+                                <th style="color: #212529; font-weight: 600;">F1-Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(trainingResults.classification_report).filter(([key]) => !['accuracy', 'macro avg', 'weighted avg'].includes(key)).map(([key, metrics]) => `
+                                <tr>
+                                    <td style="color: #212529; font-weight: 500;">${key}</td>
+                                    <td style="color: #212529;">${metrics.precision.toFixed(3)}</td>
+                                    <td style="color: #212529;">${metrics.recall.toFixed(3)}</td>
+                                    <td style="color: #212529;">${metrics['f1-score'].toFixed(3)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        ${trainingResults.feature_importance && Object.keys(trainingResults.feature_importance).length > 0 ? `
+            <div class="mt-4">
+                <h6 style="color: #212529; font-weight: 600; margin-bottom: 15px;">Top 10 Most Important Features</h6>
+                <div class="row">
+                    ${Object.entries(trainingResults.feature_importance)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 10)
+                        .map(([feature, importance]) => `
+                            <div class="col-md-6 mb-2">
+                                <div class="d-flex justify-content-between" style="margin-bottom: 5px;">
+                                    <span class="small" style="color: #212529; font-weight: 500;">${feature}</span>
+                                    <span class="badge bg-primary">${(importance * 100).toFixed(1)}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background-color: #e9ecef;">
+                                    <div class="progress-bar bg-primary" style="width: ${importance * 100}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                </div>
+            </div>
+        ` : `
+            <div class="mt-4">
+                <h6 style="color: #212529; font-weight: 600; margin-bottom: 15px;">Feature Importance</h6>
+                <div class="alert alert-info" style="color: #212529;">
+                    <i class="fas fa-info-circle"></i> Feature importance not available for this model type (Neural Network, SVM, etc.)
+                </div>
+            </div>
+        `}
+    `;
+    
+    resultsDiv.style.display = 'block';
+    resultsDiv.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}

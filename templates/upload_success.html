@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Successful{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="success-message">
+        <h2><i class="fas fa-check-circle"></i> File Uploaded Successfully!</h2>
+        <p>Your data file has been processed and is ready for analysis.</p>
+    </div>
+    
+    <div class="file-info">
+        <h3><i class="fas fa-file"></i> File Information</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Filename:</label>
+                <span>{{ data.filename }}</span>
+            </div>
+            <div class="info-item">
+                <label>Data Shape:</label>
+                <span>{{ data.shape[0] }} rows × {{ data.shape[1] }} columns</span>
+            </div>
+            <div class="info-item">
+                <label>Columns:</label>
+                <span>{{ data.columns|length }} features</span>
+            </div>
+        </div>
+    </div>
+    
+    {% if data.analysis.analysis_available %}
+    <div class="analysis-results">
+        <h3><i class="fas fa-chart-bar"></i> Analysis Results</h3>
+        <div class="results-grid">
+            <div class="result-card candidate">
+                <div class="result-number">{{ data.analysis.candidates_found }}</div>
+                <div class="result-label">Exoplanet Candidates</div>
+                <div class="result-description">Potential new planets found!</div>
+            </div>
+            <div class="result-card false-positive">
+                <div class="result-number">{{ data.analysis.false_positives }}</div>
+                <div class="result-label">False Positives</div>
+                <div class="result-description">Not exoplanets</div>
+            </div>
+            <div class="result-card total">
+                <div class="result-number">{{ data.analysis.total_rows }}</div>
+                <div class="result-label">Total Objects</div>
+                <div class="result-description">Objects analyzed</div>
+            </div>
+        </div>
+        
+        {% if data.analysis.candidates_found > 0 %}
+        <div class="discovery-alert">
+            <i class="fas fa-star"></i>
+            <strong>Discovery Alert!</strong> 
+            We found {{ data.analysis.candidates_found }} potential exoplanet candidates in your data!
+        </div>
+        {% endif %}
+    </div>
+    {% elif data.analysis.error %}
+    <div class="analysis-error">
+        <h3><i class="fas fa-exclamation-triangle"></i> Analysis Not Available</h3>
+        <div class="alert alert-warning">
+            <strong>Reason:</strong> {{ data.analysis.error }}
+        </div>
+        <p>Please train a model first or check your data format.</p>
+    </div>
+    {% endif %}
+    
+    <div class="actions">
+        <a href="/train" class="btn btn-primary">
+            <i class="fas fa-brain"></i> Train Model
+        </a>
+        <a href="/predict" class="btn btn-success">
+            <i class="fas fa-search"></i> Make Predictions
+        </a>
+        <a href="/upload" class="btn btn-secondary">
+            <i class="fas fa-upload"></i> Upload Another File
+        </a>
+    </div>
+</div>
+
+<style>
+.success-message {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.success-message h2 {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.success-message i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.file-info {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    border-left: 4px solid #007bff;
+}
+
+.file-info h3 {
+    color: #007bff;
+    margin-bottom: 1.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.info-item label {
+    font-weight: bold;
+    color: #495057;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.info-item span {
+    color: #007bff;
+    font-size: 1.1rem;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.actions .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.actions .btn i {
+    margin-right: 0.5rem;
+}
+
+.analysis-results {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    border-left: 4px solid #007bff;
+}
+
+.analysis-results h3 {
+    color: #007bff;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.result-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    border: 2px solid #dee2e6;
+    transition: transform 0.3s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-5px);
+}
+
+.result-card.candidate {
+    border-color: #28a745;
+}
+
+.result-card.false-positive {
+    border-color: #dc3545;
+}
+
+.result-card.total {
+    border-color: #007bff;
+}
+
+.result-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.result-card.candidate .result-number {
+    color: #28a745;
+}
+
+.result-card.false-positive .result-number {
+    color: #dc3545;
+}
+
+.result-card.total .result-number {
+    color: #007bff;
+}
+
+.result-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.result-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.discovery-alert {
+    background: linear-gradient(135deg, #ffc107, #ff8c00);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.analysis-error {
+    background: #fff3cd;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    border-left: 4px solid #ffc107;
+}
+
+.analysis-error h3 {
+    color: #856404;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Predict Exoplanet - Exoplanet Detection AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-crystal-ball"></i> Exoplanet Prediction
+                </h4>
+            </div>
+            <div class="card-body">
+                <form id="predictForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_period" class="form-label">
+                                    <strong>Orbital Period (days)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_period" name="koi_period" 
+                                       step="0.01" value="365.25" required>
+                                <div class="form-text">Time for one complete orbit around the star</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_duration" class="form-label">
+                                    <strong>Transit Duration (hours)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_duration" name="koi_duration" 
+                                       step="0.01" value="13.0" required>
+                                <div class="form-text">Duration of the transit event</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_depth" class="form-label">
+                                    <strong>Transit Depth (ppm)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_depth" name="koi_depth" 
+                                       step="0.1" value="14230.9" required>
+                                <div class="form-text">Depth of the transit in parts per million</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_prad" class="form-label">
+                                    <strong>Planetary Radius (Earth radii)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_prad" name="koi_prad" 
+                                       step="0.01" value="13.04" required>
+                                <div class="form-text">Radius of the planet relative to Earth</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_impact" class="form-label">
+                                    <strong>Impact Parameter</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_impact" name="koi_impact" 
+                                       step="0.001" value="0.818" required>
+                                <div class="form-text">Transit impact parameter (0-1)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_steff" class="form-label">
+                                    <strong>Stellar Temperature (K)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_steff" name="koi_steff" 
+                                       step="1" value="5820" required>
+                                <div class="form-text">Effective temperature of the host star</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_srad" class="form-label">
+                                    <strong>Stellar Radius (Solar radii)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_srad" name="koi_srad" 
+                                       step="0.001" value="0.964" required>
+                                <div class="form-text">Radius of the host star relative to Sun</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_slogg" class="form-label">
+                                    <strong>Stellar Surface Gravity</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_slogg" name="koi_slogg" 
+                                       step="0.001" value="4.457" required>
+                                <div class="form-text">Surface gravity of the host star</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_model_snr" class="form-label">
+                                    <strong>Signal-to-Noise Ratio</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_model_snr" name="koi_model_snr" 
+                                       step="0.1" value="1339.0" required>
+                                <div class="form-text">Transit signal-to-noise ratio</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_teq" class="form-label">
+                                    <strong>Equilibrium Temperature (K)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_teq" name="koi_teq" 
+                                       step="0.01" value="761.46" required>
+                                <div class="form-text">Planet's equilibrium temperature</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="koi_insol" class="form-label">
+                                    <strong>Insolation Flux (Earth flux)</strong>
+                                </label>
+                                <input type="number" class="form-control" id="koi_insol" name="koi_insol" 
+                                       step="0.1" value="4304.3" required>
+                                <div class="form-text">Stellar flux received by the planet</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <strong>False Positive Flags</strong>
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="koi_fpflag_nt" name="koi_fpflag_nt" value="1">
+                                    <label class="form-check-label" for="koi_fpflag_nt">
+                                        Not Transit-Like
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="koi_fpflag_ss" name="koi_fpflag_ss" value="1">
+                                    <label class="form-check-label" for="koi_fpflag_ss">
+                                        Stellar Eclipse
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="koi_fpflag_co" name="koi_fpflag_co" value="1">
+                                    <label class="form-check-label" for="koi_fpflag_co">
+                                        Centroid Offset
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="koi_fpflag_ec" name="koi_fpflag_ec" value="1">
+                                    <label class="form-check-label" for="koi_fpflag_ec">
+                                        Ephemeris Match
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left"></i> Back to Home
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-crystal-ball"></i> Predict Exoplanet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Prediction Results -->
+        <div class="card mt-4" id="predictionResult" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-star"></i> Prediction Result
+                </h5>
+            </div>
+            <div class="card-body" id="resultContent">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('predictForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const features = {};
+    
+    // Extract feature values
+    for (const [key, value] of formData.entries()) {
+        if (key.startsWith('koi_')) {
+            if (key.includes('fpflag')) {
+                features[key] = value === '1' ? 1 : 0;
+            } else {
+                features[key] = parseFloat(value) || 0;
+            }
+        }
+    }
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Predicting...';
+    submitBtn.disabled = true;
+    
+    // Send prediction request
+    fetch('/predict_single', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ features: features })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            displayPredictionResult(result.result);
+        } else {
+            showError('Prediction failed: ' + result.error);
+        }
+    })
+    .catch(error => {
+        showError('Prediction failed: ' + error.message);
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+function displayPredictionResult(result) {
+    const resultDiv = document.getElementById('predictionResult');
+    const contentDiv = document.getElementById('resultContent');
+    
+    const confidenceColor = result.confidence > 0.8 ? 'success' : 
+                           result.confidence > 0.6 ? 'warning' : 'danger';
+    
+    contentDiv.innerHTML = `
+        <div class="alert alert-${confidenceColor}">
+            <h5 class="alert-heading">
+                <i class="fas fa-star"></i> Prediction Result
+            </h5>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Predicted Class:</strong><br>
+                    <span class="badge bg-primary fs-6">${result.prediction}</span>
+                </div>
+                <div class="col-md-6">
+                    <strong>Confidence:</strong><br>
+                    <span class="badge bg-${confidenceColor} fs-6">${(result.confidence * 100).toFixed(1)}%</span>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Model:</strong> ${result.model_name}<br>
+                    <strong>Model Accuracy:</strong> ${(result.model_accuracy * 100).toFixed(1)}%
+                </div>
+                <div class="col-md-6">
+                    <strong>Class Probabilities:</strong><br>
+                    ${Object.entries(result.class_probabilities).map(([className, prob]) => `
+                        <div class="d-flex justify-content-between">
+                            <span class="small">${className}</span>
+                            <span class="badge bg-secondary">${(prob * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="progress mb-1" style="height: 4px;">
+                            <div class="progress-bar bg-secondary" style="width: ${prob * 100}%"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    resultDiv.style.display = 'block';
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showError(message) {
+    const resultDiv = document.getElementById('predictionResult');
+    const contentDiv = document.getElementById('resultContent');
+    
+    contentDiv.innerHTML = `
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            ${message}
+        </div>
+    `;
+    
+    resultDiv.style.display = 'block';
+}
+</script>
+{% endblock %}
